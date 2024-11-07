@@ -2,9 +2,10 @@ defmodule LiveTracing.Telemetry.Phoenix do
   @moduledoc """
   Modifications on top of OpenTelemetryPhoenix. Expands on LiveView instrumentation in novel ways.
   """
+  alias LiveTracing.Telemetry.TraceparentExtractor
   alias OpenTelemetry.SemConv.Incubating.URLAttributes
-
   alias OpenTelemetry.Tracer
+  alias Phoenix.LiveView
 
   require OpenTelemetry.Tracer
 
@@ -108,6 +109,10 @@ defmodule LiveTracing.Telemetry.Phoenix do
         %{socket: %{view: live_view} = socket} = meta,
         _handler_configuration
       ) do
+    socket
+    |> LiveView.get_connect_params()
+    |> TraceparentExtractor.extract()
+
     OpentelemetryTelemetry.start_telemetry_span(
       @tracer_id,
       "#{inspect(live_view)}.mount",
