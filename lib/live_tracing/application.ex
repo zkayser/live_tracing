@@ -8,7 +8,8 @@ defmodule LiveTracing.Application do
   @impl true
   def start(_type, _args) do
     OpentelemetryBandit.setup()
-    OpentelemetryPhoenix.setup(adapter: :bandit)
+    # OpentelemetryPhoenix.setup(adapter: :bandit)
+    LiveTracing.Telemetry.Phoenix.setup(adapter: :bandit)
     OpentelemetryEcto.setup([:live_tracing, :repo], db_statement: :enabled)
 
     children = [
