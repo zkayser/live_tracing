@@ -75,6 +75,7 @@ defmodule LiveTracing.MixProject do
       {:opentelemetry_ecto, "~> 1.2"},
       {:opentelemetry_exporter, "~> 1.8"},
       {:opentelemetry_phoenix, "~> 2.0.0-rc.1"},
+      {:opentelemetry_telemetry, "~> 1.0"},
       {:bandit, "~> 1.5"}
     ]
   end
