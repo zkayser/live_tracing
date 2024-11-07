@@ -40,6 +40,7 @@ defmodule LiveTracingWeb.Endpoint do
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
+  plug LiveTracing.Plugs.TraceParentInjector
 
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
