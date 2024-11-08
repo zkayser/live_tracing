@@ -2,7 +2,6 @@ defmodule LiveTracingWeb.ThreadLive.Index do
   use LiveTracingWeb, :live_view
 
   alias LiveTracing.Channels
-  alias LiveTracing.Channels.Thread
 
   @impl true
   def mount(_params, _session, socket) do
@@ -12,6 +11,15 @@ defmodule LiveTracingWeb.ThreadLive.Index do
   @impl true
   def handle_params(_params, _uri, socket) do
     Process.sleep(Enum.random(1..100))
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("add_message", _, socket) do
+    random_id = :rand.uniform(10_000)
+    thread_message = %{id: random_id, message: "You added message ID #{random_id}"}
+
+    socket = stream_insert(socket, :threads, thread_message, limit: -10)
     {:noreply, socket}
   end
 end
