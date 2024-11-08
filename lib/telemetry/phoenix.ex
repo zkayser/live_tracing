@@ -109,9 +109,11 @@ defmodule LiveTracing.Telemetry.Phoenix do
         %{socket: %{view: live_view} = socket} = meta,
         _handler_configuration
       ) do
-    socket
-    |> LiveView.get_connect_params()
-    |> TraceparentExtractor.extract()
+    if LiveView.connected?(socket) do
+      socket
+      |> LiveView.get_connect_params()
+      |> TraceparentExtractor.extract()
+    end
 
     OpentelemetryTelemetry.start_telemetry_span(
       @tracer_id,
@@ -156,6 +158,8 @@ defmodule LiveTracing.Telemetry.Phoenix do
         _handler_configuration
       ) do
     OpentelemetryTelemetry.end_telemetry_span(@tracer_id, meta)
+    Tracer.end_span()
+    |> :otel_ctx.detach()
   end
 
   def handle_liveview_event(
