@@ -12,12 +12,13 @@ defmodule LiveTracingWeb.Live.Hooks.SpanContextInjection do
   be used to associate things like `c:handle_event/3` and `c:handle_params/3`
   callback traces to the originating request.
   """
+  require OpenTelemetry.Tracer, as: Tracer
   require Record
 
   import Phoenix.Component, only: [assign: 3]
 
   def on_mount(_, _params, _session, socket) do
-    case :otel_ctx.get_current() do
+    case Tracer.current_span_ctx() do
       span_ctx when Record.is_record(span_ctx, :span_ctx) ->
         {:cont, assign(socket, :"$__otel_original_span_ctx", span_ctx)}
       _ -> {:cont, socket}
