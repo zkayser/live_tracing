@@ -9,7 +9,12 @@ defmodule LiveTracing.Plugs.TraceParentInjector do
   def init(_), do: :ok
 
   def call(conn, _opts) do
-    case :otel_propagator_trace_context.inject(:otel_ctx.get_current(), %{}, &carrier_set_fun/3, []) do
+    case :otel_propagator_trace_context.inject(
+           :otel_ctx.get_current(),
+           %{},
+           &carrier_set_fun/3,
+           []
+         ) do
       %{"traceparent" => traceparent} -> Conn.assign(conn, :traceparent, traceparent)
       _ -> Conn.assign(conn, :traceparent, nil)
     end

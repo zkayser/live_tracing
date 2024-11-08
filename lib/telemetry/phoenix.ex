@@ -25,7 +25,11 @@ defmodule LiveTracing.Telemetry.Phoenix do
   """
   @spec setup(opts()) :: :ok
   def setup(opts \\ []) do
-    opts = if !opts[:endpoint_prefix], do: Keyword.put(opts, :endpoint_prefix, [:phoenix, :endpoint]), else: opts
+    opts =
+      if !opts[:endpoint_prefix],
+        do: Keyword.put(opts, :endpoint_prefix, [:phoenix, :endpoint]),
+        else: opts
+
     attach_endpoint_start_handler(opts)
     attach_router_start_handler(opts)
     attach_liveview_handlers()
@@ -179,7 +183,9 @@ defmodule LiveTracing.Telemetry.Phoenix do
 
   defp end_originating_span do
     case Tracer.current_span_ctx() do
-      :undefined -> :ok
+      :undefined ->
+        :ok
+
       token ->
         Tracer.end_span()
         :otel_ctx.detach(token)

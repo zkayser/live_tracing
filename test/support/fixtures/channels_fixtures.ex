@@ -10,9 +10,7 @@ defmodule LiveTracing.ChannelsFixtures do
   def thread_fixture(attrs \\ %{}) do
     {:ok, thread} =
       attrs
-      |> Enum.into(%{
-
-      })
+      |> Enum.into(%{})
       |> LiveTracing.Channels.create_thread()
 
     thread

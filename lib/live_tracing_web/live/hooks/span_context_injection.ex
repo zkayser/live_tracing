@@ -21,7 +21,9 @@ defmodule LiveTracingWeb.Live.Hooks.SpanContextInjection do
     case Tracer.current_span_ctx() do
       span_ctx when Record.is_record(span_ctx, :span_ctx) ->
         {:cont, assign(socket, :"$__otel_original_span_ctx", span_ctx)}
-      _ -> {:cont, socket}
+
+      _ ->
+        {:cont, socket}
     end
   end
 end
