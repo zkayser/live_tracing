@@ -147,7 +147,7 @@ defmodule LiveTracing.Telemetry.Phoenix do
 
         if should_link_originating_span? && Record.is_record(originating_span_ctx, :span_ctx) do
           link = OpenTelemetry.link(originating_span_ctx)
-          Map.put(opts, :links[link])
+          Map.put(opts, :links, [link])
         else
           opts
         end
