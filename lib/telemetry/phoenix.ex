@@ -182,7 +182,7 @@ defmodule LiveTracing.Telemetry.Phoenix do
       :undefined -> :ok
       token ->
         Tracer.end_span()
-        |> :otel_ctx.detach()
+        :otel_ctx.detach(token)
     end
   end
 end
