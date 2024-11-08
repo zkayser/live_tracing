@@ -8,6 +8,7 @@ defmodule LiveTracing.Telemetry.Phoenix do
   alias Phoenix.LiveView
 
   require OpenTelemetry.Tracer
+  require Record
 
   @tracer_id __MODULE__
 
@@ -130,21 +131,32 @@ defmodule LiveTracing.Telemetry.Phoenix do
   def handle_liveview_event(
         [:phoenix, _live, :handle_params, :start],
         _measurements,
-        %{socket: %{view: live_view}} = meta,
+        %{socket: %{view: live_view} = socket} = meta,
         _handler_configuration
       ) do
+    should_link_originating_span? =
+      LiveView.connected?(socket) && Tracer.current_span_ctx() == :undefined
+
     OpentelemetryTelemetry.start_telemetry_span(
       @tracer_id,
       "#{inspect(live_view)}.handle_params",
       meta,
       %{kind: :server}
     )
+
+    with true <- should_link_originating_span?,
+         originating_span_ctx when Record.is_record(originating_span_ctx, :span_ctx) <-
+           Map.get(socket.assigns, :"$__otel_original_span_ctx") do
+      OpenTelemetry.link(originating_span_ctx)
+    else
+      _ -> :ok
+    end
   end
 
   def handle_liveview_event(
         [:phoenix, _live, :handle_event, :start],
         _measurements,
-        %{socket: %{view: live_view}, event: event} = meta,
+        %{socket: %{view: live_view} = socket, event: event} = meta,
         _handler_configuration
       ) do
     OpentelemetryTelemetry.start_telemetry_span(
@@ -153,6 +165,14 @@ defmodule LiveTracing.Telemetry.Phoenix do
       meta,
       %{kind: :server}
     )
+
+    originating_span_ctx = Map.get(socket.assigns, :"$__otel_original_span_ctx")
+
+    if Record.is_record(originating_span_ctx, :span_ctx) do
+      OpenTelemetry.link(originating_span_ctx)
+    end
+
+    :ok
   end
 
   def handle_liveview_event(
