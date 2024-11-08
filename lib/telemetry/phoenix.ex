@@ -142,6 +142,16 @@ defmodule LiveTracing.Telemetry.Phoenix do
       "#{inspect(live_view)}.handle_params",
       meta,
       %{kind: :server}
+      |> then(fn opts ->
+        originating_span_ctx = Map.get(socket.assigns, :"$__otel_original_span_ctx")
+
+        if should_link_originating_span? && Record.is_record(originating_span_ctx, :span_ctx) do
+          link = OpenTelemetry.link(originating_span_ctx)
+          Map.put(opts, :links[link])
+        else
+          opts
+        end
+      end)
     )
 
     with true <- should_link_originating_span?,
@@ -159,20 +169,20 @@ defmodule LiveTracing.Telemetry.Phoenix do
         %{socket: %{view: live_view} = socket, event: event} = meta,
         _handler_configuration
       ) do
+    originating_span_ctx = Map.get(socket.assigns, :"$__otel_original_span_ctx")
+
+    link =
+      if Record.is_record(originating_span_ctx, :span_ctx) do
+        OpenTelemetry.link(originating_span_ctx)
+      end
+
     OpentelemetryTelemetry.start_telemetry_span(
       @tracer_id,
       "#{inspect(live_view)}.handle_event##{event}",
       meta,
       %{kind: :server}
+      |> then(fn opts -> if(link, do: Map.put(opts, :links, [link]), else: opts) end)
     )
-
-    originating_span_ctx = Map.get(socket.assigns, :"$__otel_original_span_ctx")
-
-    if Record.is_record(originating_span_ctx, :span_ctx) do
-      OpenTelemetry.link(originating_span_ctx)
-    end
-
-    :ok
   end
 
   def handle_liveview_event(
