@@ -54,6 +54,7 @@ defmodule LiveTracingWeb do
       use Phoenix.LiveView,
         layout: {LiveTracingWeb.Layouts, :app}
 
+      on_mount(unquote(LiveTracingWeb.Live.Hooks.SpanContextInjection))
       unquote(html_helpers())
     end
   end
