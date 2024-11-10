@@ -54,9 +54,12 @@ export class PhoenixSocketInstrumentation extends InstrumentationBase<Instrument
         const ref = data?.ref || "0"
         const payload = data?.payload
         const eventType = payload?.event || data?.event || "socket_event"
-        const span = plugin.tracer.startSpan(`phoenix.socket.push:${eventType}`, { kind: SpanKind.CLIENT }, ctx);
+        // Do not create spans for heartbeat messages;
+        if (eventType !== "heartbeat") {
+          const span = plugin.tracer.startSpan(`phoenix.socket.push:${eventType}`, { kind: SpanKind.CLIENT }, ctx);
 
-        plugin._messageMem.set(ref, span)
+          plugin._messageMem.set(ref, span)
+        }
         return original.apply(this, args);
       }
     }
