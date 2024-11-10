@@ -134,33 +134,12 @@ defmodule LiveTracing.Telemetry.Phoenix do
         %{socket: %{view: live_view} = socket} = meta,
         _handler_configuration
       ) do
-    should_link_originating_span? =
-      LiveView.connected?(socket) && Tracer.current_span_ctx() == :undefined
-
     OpentelemetryTelemetry.start_telemetry_span(
       @tracer_id,
       "#{inspect(live_view)}.handle_params",
       meta,
       %{kind: :server}
-      |> then(fn opts ->
-        originating_span_ctx = Map.get(socket.assigns, :"$__otel_original_span_ctx")
-
-        if should_link_originating_span? && Record.is_record(originating_span_ctx, :span_ctx) do
-          link = OpenTelemetry.link(originating_span_ctx)
-          Map.put(opts, :links, [link])
-        else
-          opts
-        end
-      end)
     )
-
-    with true <- should_link_originating_span?,
-         originating_span_ctx when Record.is_record(originating_span_ctx, :span_ctx) <-
-           Map.get(socket.assigns, :"$__otel_original_span_ctx") do
-      OpenTelemetry.link(originating_span_ctx)
-    else
-      _ -> :ok
-    end
   end
 
   def handle_liveview_event(
@@ -169,19 +148,11 @@ defmodule LiveTracing.Telemetry.Phoenix do
         %{socket: %{view: live_view} = socket, event: event} = meta,
         _handler_configuration
       ) do
-    originating_span_ctx = Map.get(socket.assigns, :"$__otel_original_span_ctx")
-
-    link =
-      if Record.is_record(originating_span_ctx, :span_ctx) do
-        OpenTelemetry.link(originating_span_ctx)
-      end
-
     OpentelemetryTelemetry.start_telemetry_span(
       @tracer_id,
       "#{inspect(live_view)}.handle_event##{event}",
       meta,
       %{kind: :server}
-      |> then(fn opts -> if(link, do: Map.put(opts, :links, [link]), else: opts) end)
     )
   end
 
@@ -192,7 +163,6 @@ defmodule LiveTracing.Telemetry.Phoenix do
         _handler_configuration
       ) do
     OpentelemetryTelemetry.end_telemetry_span(@tracer_id, meta)
-    end_originating_span()
   end
 
   def handle_liveview_event(
@@ -208,17 +178,5 @@ defmodule LiveTracing.Telemetry.Phoenix do
     OpenTelemetry.Span.record_exception(ctx, exception, stacktrace, [])
     OpenTelemetry.Span.set_status(ctx, OpenTelemetry.status(:error, ""))
     OpentelemetryTelemetry.end_telemetry_span(@tracer_id, meta)
-    end_originating_span()
-  end
-
-  defp end_originating_span do
-    case Tracer.current_span_ctx() do
-      :undefined ->
-        :ok
-
-      token ->
-        Tracer.end_span()
-        :otel_ctx.detach(token)
-    end
   end
 end
