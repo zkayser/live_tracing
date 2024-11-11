@@ -18,6 +18,7 @@ defmodule LiveTracingWeb.ThreadLive.Index do
   def handle_event("add_message", _, socket) do
     random_id = :rand.uniform(10_000)
     thread_message = %{id: random_id, message: "You added message ID #{random_id}"}
+    _ = AnalyticsClient.increment_message()
 
     socket = stream_insert(socket, :threads, thread_message, limit: -10)
     {:noreply, socket}
