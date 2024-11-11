@@ -1,13 +1,12 @@
-defmodule LiveTracing.MixProject do
+defmodule LiveTracingRoot.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :live_tracing,
+      app: :live_tracing_root,
       version: "0.1.0",
       elixir: "~> 1.17",
       apps_path: "apps",
-      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       applications: [opentelemetry: :temporary],
@@ -24,20 +23,6 @@ defmodule LiveTracing.MixProject do
       deps: deps()
     ]
   end
-
-  # Configuration for the OTP application.
-  #
-  # Type `mix help compile.app` for more information.
-  def application do
-    [
-      mod: {LiveTracing.Application, []},
-      extra_applications: [:logger, :runtime_tools]
-    ]
-  end
-
-  # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
   #
