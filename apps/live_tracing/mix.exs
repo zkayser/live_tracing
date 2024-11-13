@@ -1,34 +1,43 @@
-defmodule LiveTracingRoot.MixProject do
+defmodule LiveTracing.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :live_tracing_root,
+      app: :live_tracing,
       version: "0.1.0",
       elixir: "~> 1.17",
-      apps_path: "apps",
+      build_path: "../../_build",
+      config_path: "../../config/config.exs",
+      deps_path: "../../deps",
+      lockfile: "../../mix.lock",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       applications: [opentelemetry: :temporary],
-      releases: [
-        live_tracing: [
-          version: "0.1.0",
-          applications: [
-            opentelemetry_exporter: :permanent,
-            opentelemetry: :temporary,
-            live_tracing: :permanent
-          ]
-        ]
-      ],
       deps: deps()
     ]
   end
+
+  # Configuration for the OTP application.
+  #
+  # Type `mix help compile.app` for more information.
+  def application do
+    [
+      mod: {LiveTracing.Application, []},
+      extra_applications: [:logger, :runtime_tools]
+    ]
+  end
+
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
   #
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:otp_trace_tools, in_umbrella: true},
       {:phoenix, "~> 1.7.14"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.10"},

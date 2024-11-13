@@ -1,0 +1,11 @@
+<.header>
+  Listing Threads
+  <div id="threads" phx-update="stream">
+    <ul :for={{dom_id, thread} <- @streams.threads} id={dom_id} }>
+      <li><%= thread.message %></li>
+    </ul>
+  </div>
+  <.button phx-click="add_message" type="button">
+    Add Message
+  </.button>
+</.header>
